@@ -1,70 +1,87 @@
-# Getting Started with Create React App
+# iNotebook — Full-stack note-taking app (JavaScript)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A responsive note-taking app built with **React (JavaScript/JSX)**, Tailwind CSS, Node.js, Express, and MongoDB. No TypeScript is used. Features include signup/login, JWT-protected notes, search, category filtering, editing, and deleting notes.
 
-## Available Scripts
+## Requirements
+- Node.js 20 or newer (Node 20 LTS recommended)
+- npm
+- MongoDB Community Server running locally, or a MongoDB Atlas connection URI
 
-In the project directory, you can run:
+## 1. Install dependencies
+Open PowerShell in the folder containing the root `package.json`:
 
-### `npm start`
+```powershell
+npm install
+npm --prefix backend install
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 2. Configure the backend
+Copy the example environment file:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```powershell
+Copy-Item backend/.env.example backend/.env
+notepad backend/.env
+```
 
-### `npm test`
+Fill in the values:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```dotenv
+PORT=5000
+MONGO_URI=mongodb://127.0.0.1:27017/inotebook
+JWT_SECRET=replace_with_a_long_random_secret
+CLIENT_ORIGIN=http://localhost:5173
+```
 
-### `npm run build`
+If using MongoDB Atlas, replace `MONGO_URI` with your Atlas connection string. Keep `.env` private. You can generate a secret by running:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```powershell
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Paste that output as `JWT_SECRET`.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 3. Configure the frontend
+Create a `.env` file in the project root:
 
-### `npm run eject`
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Ensure it contains:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```dotenv
+VITE_API_URL=http://localhost:5000
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 4. Run the project
+From the project root:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```powershell
+npm run dev
+```
 
-## Learn More
+Frontend: **http://localhost:5173**  
+Backend: **http://localhost:5000**  
+Health check: **http://localhost:5000/api/health**
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Keep the terminal open while using the app. The backend starts after it connects to MongoDB.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## API routes
+| Method | Route | Purpose |
+| --- | --- | --- |
+| POST | `/api/auth` | Create account |
+| POST | `/api/auth/login` | Sign in |
+| GET | `/api/auth/me` | Current account (JWT required) |
+| GET | `/api/notes/fetchallnotes` | List current user's notes |
+| POST | `/api/notes/addnote` | Create note |
+| PUT | `/api/notes/updatenote/:id` | Update a note |
+| DELETE | `/api/notes/deletenote/:id` | Delete a note |
+| GET | `/api/health` | API health check |
 
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Troubleshooting
+- **`MONGO_URI is missing`**: ensure `backend/.env` exists and contains `MONGO_URI`.
+- **MongoDB connection error**: verify the URI, Atlas network access, and database user credentials.
+- **Failed to fetch**: make sure both servers are running and `VITE_API_URL` and `CLIENT_ORIGIN` match the ports above. Restart the project after changing `.env`.
+- **401 on notes**: sign in again.
+- **Port already in use**: stop the older server process or change the port and matching environment values.

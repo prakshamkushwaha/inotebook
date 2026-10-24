@@ -1,0 +1,15 @@
+iNotebook — JavaScript Windows quick start
+
+1. Extract this ZIP to a simple folder, for example C:\Projects\inotebook.
+2. Open the extracted folder in VS Code.
+3. In PowerShell at the project root run:
+   npm install
+   npm --prefix backend install
+4. Copy backend/.env.example to backend/.env, then open it and fill in MONGO_URI and JWT_SECRET.
+5. Copy .env.example to .env. Make sure VITE_API_URL=http://localhost:5000.
+6. Run npm run dev.
+7. Open http://localhost:5173.
+
+This project uses JavaScript and JSX. It does not require TypeScript.
+Do not run JavaScript such as require('dotenv').config() directly in PowerShell; that code belongs inside a JavaScript file.
+Do not upload .env files or share their contents publicly.

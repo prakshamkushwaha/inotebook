@@ -1,36 +1,14 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "yourSecretKey";
-
-const fetchuser = (req, res, next) => {
-
-  const token = req.header('auth-token');
-
-  if (!token) {
-    return res.status(401).send({
-      error: "Please authenticate"
-    });
-  }
-
+module.exports = function fetchuser(req, res, next) {
+  const token = req.header("auth-token");
+  if (!token) return res.status(401).json({ error: "Please sign in to continue." });
+  if (!process.env.JWT_SECRET) return res.status(500).json({ error: "JWT_SECRET is not configured." });
   try {
-
-    const data = jwt.verify(
-      token,
-      JWT_SECRET
-    );
-
-    req.user = data.user;
-
-    next();
-
-  } catch (error) {
-
-    res.status(401).send({
-      error: "Please authenticate"
-    });
-
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = payload.user;
+    return next();
+  } catch (_error) {
+    return res.status(401).json({ error: "Your session has expired. Please sign in again." });
   }
-
 };
-
-module.exports = fetchuser;
