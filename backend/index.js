@@ -1,83 +1,68 @@
 
 const dns = require("node:dns");
-
-// Configure DNS before connecting to MongoDB Atlas
-dns.setServers(["8.8.8.8", "8.8.4.4"]);
-
-require("dotenv").config();
-
+const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
+
 const connectToMongo = require("./db");
+const authRoutes = require("./routes/auth");
+const notesRoutes = require("./routes/notes");
+
+dotenv.config();
+
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
 const app = express();
 const port = Number(process.env.PORT) || 5000;
 
-const allowedOrigins = (
-  process.env.CLIENT_ORIGIN || "http://localhost:5173"
-)
-  .split(",")
-  .map((origin) => origin.trim());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://inotebook-fvju-d0vj5l04f-praksham-dev.vercel.app",
+  ...(process.env.CLIENT_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+];
 
-// Middleware
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      return callback(new Error("Origin not allowed by CORS"));
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "auth-token"],
-  })
-);
+    console.error("Blocked CORS origin:", origin);
+    return callback(new Error("Origin not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "auth-token", "Authorization"]
+}));
 
 app.use(express.json({ limit: "1mb" }));
 
-// Root endpoint
 app.get("/", (_req, res) => {
-  res.json({
-    status: "ok",
-    service: "iNotebook API",
-  });
+  res.json({ status: "ok", service: "iNotebook API" });
 });
 
-// Health check endpoint
 app.get("/api/health", (_req, res) => {
-  res.json({
-    status: "ok",
-  });
+  res.json({ status: "ok" });
 });
 
-// API routes
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/notes", require("./routes/notes"));
+app.use("/api/auth", authRoutes);
+app.use("/api/notes", notesRoutes);
 
-// Error-handling middleware
 app.use((err, _req, res, _next) => {
   console.error("API error:", err.message);
-
-  res.status(500).json({
-    error: "Unexpected server error",
-  });
+  res.status(500).json({ error: "Unexpected server error" });
 });
 
-// Connect to MongoDB, then start the server
 connectToMongo()
   .then(() => {
-    app.listen(port, () => {
-      console.log(
-        `iNotebook API listening at http://localhost:${port}`
-      );
+    app.listen(port, "0.0.0.0", () => {
+      console.log(`iNotebook API listening on port ${port}`);
     });
   })
   .catch((error) => {
-    console.error(
-      "Could not connect to MongoDB:",
-      error.message
-    );
-
+    console.error("Could not connect to MongoDB:", error.message);
     process.exit(1);
   });
